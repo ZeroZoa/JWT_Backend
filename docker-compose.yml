@@ -1,0 +1,33 @@
+# docker-compose.yml
+
+version: '3.8'
+
+services:
+
+  # --- PostgreSQL ---
+  postgres-db:
+    image: postgres:15
+    container_name: jwt_server_postgre
+    environment:
+      POSTGRES_USER: jwt_server_postgre
+      POSTGRES_PASSWORD: jwtserver:8080
+      POSTGRES_DB: jwtserverdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: always
+
+  # --- Redis Service ---
+  redis-cache:
+    image: redis:7
+    container_name: jwt_server_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: always
+
+volumes:
+  postgres-data:
+  redis-data:
