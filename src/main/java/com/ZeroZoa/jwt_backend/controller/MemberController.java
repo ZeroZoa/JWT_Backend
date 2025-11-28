@@ -23,7 +23,7 @@ public class MemberController {
     private final MemberService memberService;
 
     @PostMapping("/signup")
-    public ResponseEntity<MemberSignUpResponseDto> signUp(
+    public ResponseEntity<MemberSignUpResponseDto> signup(
             @Valid @RequestBody MemberSignUpRequestDto memberSignUpRequestDto
     ) {
         MemberSignUpResponseDto memberSignUpResponseDto = memberService.signUp(memberSignUpRequestDto);

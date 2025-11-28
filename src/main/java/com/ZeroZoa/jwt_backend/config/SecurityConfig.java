@@ -35,7 +35,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션 사용 안함 (JWT)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/members/signup").permitAll() //인증 없이 접근 가능한 엔드포인트
-                        .requestMatchers("/api/email/send-verification").permitAll() //이메일 인증 코드 발송 API 허용
+                        .requestMatchers("/api/email/send-verification-code").permitAll() //이메일 인증 코드 발송 API 허용
                         .requestMatchers("/api/email/check-verification-code").permitAll() //로그인 API도 허용
                         .requestMatchers("/api/members/login").permitAll() //로그인 API도 허용
                         .requestMatchers("/api/members/logout").permitAll() //로그인 API도 허용
