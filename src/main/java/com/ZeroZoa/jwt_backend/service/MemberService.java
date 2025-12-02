@@ -4,6 +4,7 @@ package com.ZeroZoa.jwt_backend.service;
 import com.ZeroZoa.jwt_backend.config.jwt.JwtTokenProvider;
 import com.ZeroZoa.jwt_backend.domain.member.Member;
 import com.ZeroZoa.jwt_backend.dto.member.MemberLogInRequestDto;
+import com.ZeroZoa.jwt_backend.dto.member.MemberResetPasswordRequestDto;
 import com.ZeroZoa.jwt_backend.dto.member.MemberSignUpRequestDto;
 import com.ZeroZoa.jwt_backend.dto.member.MemberSignUpResponseDto;
 import com.ZeroZoa.jwt_backend.dto.token.CreateTokenResponseDto;
@@ -113,6 +114,31 @@ public class MemberService {
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
+    }
+
+    @Transactional
+    public void resetPassword(MemberResetPasswordRequestDto memberResetPasswordRequestDto){
+        Member member = memberRepository.findByEmail(memberResetPasswordRequestDto.getEmail())
+                .orElseThrow(() -> new MemberNotFoundException("존재하지 않는 회원입니다."));
+
+        String redisKey = VERIFIED_EMAIL_KEY_PREFIX + memberResetPasswordRequestDto.getVerifiedToken();
+        String verifiedEmail = redisTemplate.opsForValue().get(redisKey);
+
+        if (verifiedEmail == null || !verifiedEmail.equals(memberResetPasswordRequestDto.getEmail())) {
+            throw new IllegalArgumentException("유효하지 않거나 만료된 인증 토큰입니다.");
+        }
+
+        if (!memberResetPasswordRequestDto.getNewPassword1().equals(memberResetPasswordRequestDto.getNewPassword2())) {
+            throw new PasswordMismatchException("새 비밀번호가 서로 일치하지 않습니다.");
+        }
+
+        member.updatePassword(passwordEncoder.encode(memberResetPasswordRequestDto.getNewPassword1()));
+
+        String refreshTokenKey = REFRESH_TOKEN_PREFIX + member.getEmail();
+        redisTemplate.delete(refreshTokenKey);
+
+        // 6. 사용한 인증 토큰 삭제 (재사용 방지)
+        redisTemplate.delete(redisKey);
     }
 
     public void logOut(String email) {
