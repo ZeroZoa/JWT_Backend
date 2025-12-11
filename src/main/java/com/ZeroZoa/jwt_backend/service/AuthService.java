@@ -74,7 +74,7 @@ public class AuthService {
             throw new RuntimeException("Refresh Token이 유효하지 않습니다.");
         }
 
-        //Access Token에서 User 이메일 가져오기
+        //Access Token에서 Member 이메일 가져오기
         String email = jwtTokenProvider.getSubject(tokenReissueRequestDto.getRefreshToken());
 
         //Redis에서 저장된 Refresh Token 가져오기
