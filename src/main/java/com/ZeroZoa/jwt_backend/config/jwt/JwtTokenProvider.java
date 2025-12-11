@@ -1,6 +1,7 @@
 package com.ZeroZoa.jwt_backend.config.jwt;
 
 import com.ZeroZoa.jwt_backend.domain.member.Role;
+import com.ZeroZoa.jwt_backend.global.auth.CustomUserDetails;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -15,17 +16,20 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
+import java.util.*;
 import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class JwtTokenProvider {
 
+    //토큰 발근 키, 만료시간
     private final SecretKey key;
     private final long accessTokenExpirationMs;
     private final long refreshTokenExpirationMs;
+
+    //토큰에 추가할 내용(권한과 아이디)
+    private static final String KEY_ID = "uuid";
+    private static final String KEY_ROLE = "role";
 
     public JwtTokenProvider(
             @Value("${jwt.secret-key}") String secretKey,
@@ -38,25 +42,27 @@ public class JwtTokenProvider {
         this.refreshTokenExpirationMs = refreshTokenExpirationMs;
     }
 
-    public String createAccessToken(String email, Role role) {
+    public String createAccessToken(UUID memberId, String email, Role role) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + accessTokenExpirationMs);
 
         return Jwts.builder()
                 .subject(email)
-                .claim("role", role.name())
+                .claim(KEY_ID, memberId.toString())
+                .claim(KEY_ROLE, role.getKey())
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(key)
                 .compact();
     }
 
-    public String createRefreshToken(String email) {
+    public String createRefreshToken(UUID memberId, String email) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + refreshTokenExpirationMs);
 
         return Jwts.builder()
                 .subject(email)
+                .claim(KEY_ID, memberId.toString())
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(key)
@@ -64,33 +70,52 @@ public class JwtTokenProvider {
     }
 
     public Authentication getAuthentication(String accessToken) {
-        // 토큰 복호화
+        // 액세스 토큰 복호화
         Claims claims = parseClaims(accessToken);
 
-        if (claims.get("role") == null) {
-            throw new JwtException("토큰에 권한 정보가 없습니다.");
+        if (claims.get(KEY_ROLE) == null) {
+            throw new JwtException("권한 정보가 없는 토큰입니다.");
         }
 
         // Claim에서 권한 정보 가져오기
-        Collection<? extends GrantedAuthority> authorities =
-                Arrays.stream(claims.get("role").toString().split(","))
-                        .map(SimpleGrantedAuthority::new)
-                        .collect(Collectors.toList());
+        String roleKey = claims.get(KEY_ROLE).toString();
 
-        UserDetails principal = new User(claims.getSubject(), "", authorities);
+        Collection<? extends GrantedAuthority> authorities =
+                Collections.singletonList(new SimpleGrantedAuthority(roleKey));
+
+        String uuidString = claims.get(KEY_ID, String.class);
+        UUID memberId = UUID.fromString(uuidString);
+
+        CustomUserDetails principal = new CustomUserDetails(
+                memberId,               // UUID (PK)
+                claims.getSubject(),    // Email (로그인 ID)
+                "",                     // Password (불필요)
+                "",                     // Nickname (토큰에 없으므로 빈값)
+                authorities
+        );
 
         return new UsernamePasswordAuthenticationToken(principal, "", authorities);
     }
 
+    //
     private Claims parseClaims(String accessToken) {
+        return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(accessToken)
+                .getPayload();
+    }
+
+    //토큰 재발급 로직 전용
+    public Claims parseExpiredTokenClaims(String token) {
         try {
             return Jwts.parser()
                     .verifyWith(key)
                     .build()
-                    .parseSignedClaims(accessToken)
+                    .parseSignedClaims(token)
                     .getPayload();
         } catch (ExpiredJwtException e) {
-
+            // 만료된 토큰이어도 Claims를 반환
             return e.getClaims();
         }
     }
@@ -98,9 +123,9 @@ public class JwtTokenProvider {
     public boolean validateToken(String token) {
         try {
             Jwts.parser()
-                    .verifyWith(key)
+                    .verifyWith(key) //비밀키 대조
                     .build()
-                    .parseSignedClaims(token);
+                    .parseSignedClaims(token); //토큰 encoding -> 유효기간 검사
             return true;
         } catch (SecurityException | MalformedJwtException e) {
             log.info("잘못된 JWT 서명입니다.");
@@ -114,4 +139,7 @@ public class JwtTokenProvider {
         return false;
     }
 
+    public String getSubject(String token) {
+        return parseClaims(token).getSubject();
+    }
 }

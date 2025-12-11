@@ -2,6 +2,7 @@ package com.ZeroZoa.jwt_backend.controller;
 
 import com.ZeroZoa.jwt_backend.dto.email.EmailVerificationCheckRequestDto;
 import com.ZeroZoa.jwt_backend.dto.email.EmailVerificationRequestDto;
+import com.ZeroZoa.jwt_backend.dto.member.MemberResetPasswordRequestDto;
 import com.ZeroZoa.jwt_backend.service.EmailVerificationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,11 +19,19 @@ public class EmailVerificationController {
 
     private final EmailVerificationService emailVerificationService;
 
-    @PostMapping("/send-verification-code")
+    @PostMapping("/send-signup-verification-code")
     public ResponseEntity<String> sendVerificationCode(
             @Valid @RequestBody EmailVerificationRequestDto emailVerificationRequestDto
     ) {
-        emailVerificationService.sendVerificationCode(emailVerificationRequestDto.getEmail());
+        emailVerificationService.sendSignUpVerificationCode(emailVerificationRequestDto.getEmail());
+
+        return ResponseEntity.ok("인증 코드가 전송되었습니다.");
+    }
+
+    @PostMapping("/send-password-reset-verification-code")
+    public ResponseEntity<String> sendVerificationCode(
+            @Valid @RequestBody MemberResetPasswordRequestDto memberResetPasswordRequestDto) {
+        emailVerificationService.sendPasswordResetVerificationCode(memberResetPasswordRequestDto.getEmail());
 
         return ResponseEntity.ok("인증 코드가 전송되었습니다.");
     }

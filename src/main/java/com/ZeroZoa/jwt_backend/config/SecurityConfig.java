@@ -4,6 +4,7 @@ import com.ZeroZoa.jwt_backend.config.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -34,13 +35,16 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 적용
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션 사용 안함 (JWT)
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/members/signup").permitAll() //인증 없이 접근 가능한 엔드포인트
-                        .requestMatchers("/api/email/send-verification-code").permitAll() //이메일 인증 코드 발송 API 허용
-                        .requestMatchers("/api/email/check-verification-code").permitAll() //로그인 API도 허용
-                        .requestMatchers("/api/members/login").permitAll() //로그인 API도 허용
-                        .requestMatchers("/api/members/logout").permitAll() //로그인 API도 허용
+                        .requestMatchers(HttpMethod.POST,"/api/members/signup").permitAll() //인증 없이 접근 가능한 엔드포인트
+                        .requestMatchers(HttpMethod.POST,"/api/auth/login").permitAll() //로그인 API도 허용
+                        .requestMatchers(HttpMethod.DELETE,"/api/auth/logout").permitAll() //로그인 API도 허용
+                        .requestMatchers(HttpMethod.POST,"/api/auth/reissue").permitAll() //로그인 API도 허용
+                        .requestMatchers(HttpMethod.PUT,"/api/members/reset-password").permitAll() //로그인 API도 허용
+                        .requestMatchers(HttpMethod.POST,"/api/email/send-signup-verification-code").permitAll() //이메일 인증 코드 발송 API 허용
+                        .requestMatchers(HttpMethod.POST,"/api/email/send-password-reset-verification-code").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/api/email/check-verification-code").permitAll() //로그인 API도 허용
 
-
+                        .requestMatchers(HttpMethod.GET, "/api/members/myinfo").authenticated()
 
                         .anyRequest().permitAll() //개발용
                         //.anyRequest().authenticated() //배포용

@@ -6,6 +6,7 @@ import com.ZeroZoa.jwt_backend.global.exception.VerificationCodeMismatchExceptio
 import com.ZeroZoa.jwt_backend.repository.MemberRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -39,14 +40,37 @@ public class EmailVerificationService {
         return String.valueOf(code);
     }
 
-    //인증코드 생성 -> 전송 -> 저장
     @Transactional
-    public void sendVerificationCode(String email) {
-
+    public void sendSignUpVerificationCode(String email) {
+        // [수정] 회원가입 시에는 이미 존재하는 이메일이면 예외 발생
         if (memberRepository.existsByEmail(email)) {
             throw new EmailDuplicateException("이미 가입된 이메일입니다.");
         }
 
+        // [수정] 공통 로직 호출
+        sendVerificationCodeInternal(email);
+    }
+
+    /**
+     * 비밀번호 재설정용 인증 코드 발송
+     * - 가입된 회원인지 확인 필수
+     */
+    @Transactional
+    public void sendPasswordResetVerificationCode(String email) {
+        // [수정] 비밀번호 재설정 시에는 회원이 존재하지 않으면 예외 발생
+        if (!memberRepository.existsByEmail(email)) {
+            throw new EntityNotFoundException("가입되지 않은 이메일입니다.");
+        }
+
+        // [수정] 공통 로직 호출
+        sendVerificationCodeInternal(email);
+    }
+
+    /**
+     * 실제 인증 코드를 생성하고 메일을 보내는 내부 로직
+     * 외부에서 직접 호출할 수 없도록 private으로 선언
+     */
+    private void sendVerificationCodeInternal(String email) {
         //인증 코드 생성
         String verificationCode = createVerificationCode();
 

@@ -1,53 +1,38 @@
 package com.ZeroZoa.jwt_backend.service;
 
-
-import com.ZeroZoa.jwt_backend.config.jwt.JwtTokenProvider;
 import com.ZeroZoa.jwt_backend.domain.member.Member;
-import com.ZeroZoa.jwt_backend.dto.member.MemberLogInRequestDto;
 import com.ZeroZoa.jwt_backend.dto.member.MemberResetPasswordRequestDto;
+import com.ZeroZoa.jwt_backend.dto.member.MemberResponseDto;
 import com.ZeroZoa.jwt_backend.dto.member.MemberSignUpRequestDto;
 import com.ZeroZoa.jwt_backend.dto.member.MemberSignUpResponseDto;
-import com.ZeroZoa.jwt_backend.dto.token.CreateTokenResponseDto;
 import com.ZeroZoa.jwt_backend.global.exception.*;
 import com.ZeroZoa.jwt_backend.repository.MemberRepository;
-import org.springframework.beans.factory.annotation.Value;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.concurrent.TimeUnit;
+import java.util.List;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class MemberService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
-    private final EmailVerificationService emailVerificationService;
-    private final JwtTokenProvider jwtTokenProvider;
     private final StringRedisTemplate redisTemplate;
 
-    private final long refreshTokenExpirationMs;
     private static final String REFRESH_TOKEN_PREFIX = "refresh_token:";
     private static final String VERIFIED_EMAIL_KEY_PREFIX = "verified-email:";
 
-    public MemberService(MemberRepository memberRepository,
-                         PasswordEncoder passwordEncoder,
-                         EmailVerificationService emailVerificationService,
-                         JwtTokenProvider jwtTokenProvider,
-                         StringRedisTemplate redisTemplate,
-                         @Value("${jwt.refresh-token-expiration-ms}") long refreshTokenExpirationMs) {
-        this.memberRepository = memberRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.emailVerificationService = emailVerificationService;
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.redisTemplate = redisTemplate;
-        this.refreshTokenExpirationMs = refreshTokenExpirationMs;
-    }
-
     @Transactional
-    public MemberSignUpResponseDto signUp(MemberSignUpRequestDto memberSignUpRequestDto){
+    public MemberSignUpResponseDto signup(MemberSignUpRequestDto memberSignUpRequestDto){
 
         String verifiedRedisKey = VERIFIED_EMAIL_KEY_PREFIX + memberSignUpRequestDto.getVerifiedToken();
         String verifiedEmail = redisTemplate.opsForValue().get(verifiedRedisKey);
@@ -82,41 +67,6 @@ public class MemberService {
     }
 
     @Transactional
-    public CreateTokenResponseDto logIn(MemberLogInRequestDto memberLogInRequestDto){
-        Member member = memberRepository.findByEmail(memberLogInRequestDto.getEmail())
-                .orElseThrow(() -> new LoginFailedException("로그인 정보가 올바르지 않습니다."));
-
-        if (!passwordEncoder.matches(memberLogInRequestDto.getPassword(), member.getPassword())) {
-            throw new LoginFailedException("로그인 정보가 올바르지 않습니다.");
-        }
-
-        if (member.getEmailVerifiedAt() == null) {
-            throw new EmailNotVerifiedException("이메일 인증이 완료되지 않은 계정입니다.");
-        }
-
-        String accessToken = jwtTokenProvider.createAccessToken(
-                member.getEmail(),
-                member.getRole()
-        );
-
-        String refreshToken = jwtTokenProvider.createRefreshToken(member.getEmail());
-
-        String redisKey = REFRESH_TOKEN_PREFIX + member.getEmail();
-        redisTemplate.opsForValue().set(
-                redisKey,
-                refreshToken,
-                refreshTokenExpirationMs,
-                TimeUnit.MILLISECONDS
-        );
-
-        return CreateTokenResponseDto.builder()
-                .grantType("Bearer")
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .build();
-    }
-
-    @Transactional
     public void resetPassword(MemberResetPasswordRequestDto memberResetPasswordRequestDto){
         Member member = memberRepository.findByEmail(memberResetPasswordRequestDto.getEmail())
                 .orElseThrow(() -> new MemberNotFoundException("존재하지 않는 회원입니다."));
@@ -141,13 +91,11 @@ public class MemberService {
         redisTemplate.delete(redisKey);
     }
 
-    public void logOut(String email) {
-        String redisKey = REFRESH_TOKEN_PREFIX + email;
+    public MemberResponseDto getMemberInfo(String email) {
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("회원을 찾을 수 없습니다."));
 
-        String refreshTokenInRedis = redisTemplate.opsForValue().get(redisKey);
-
-        if (refreshTokenInRedis != null) {
-            redisTemplate.delete(redisKey);
-        }
+        return MemberResponseDto.from(member);
     }
+
 }
