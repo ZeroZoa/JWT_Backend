@@ -35,7 +35,7 @@ dependencies {
 
     // JWT Dependencies
     implementation 'io.jsonwebtoken:jjwt-api:0.12.7'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.7'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.12.7'
     implementation 'io.jsonwebtoken:jjwt-jackson:0.12.7'
 
     compileOnly 'org.projectlombok:lombok'
