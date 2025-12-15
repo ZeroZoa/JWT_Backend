@@ -98,7 +98,7 @@
 
 <h2> Filter vs Interceptor </h2>
 
-<table border="1" cellspacing="0" cellpadding="4" style="width:100%; table-layout:fixed;">
+<table border="1" cellspacing="0" cellpadding="4">
     <tr>
         <th>Filter</th>
         <th>Interceptor</th>
