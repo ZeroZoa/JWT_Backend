@@ -71,3 +71,53 @@
   <img src="https://img.shields.io/badge/Docker-000000?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"/>
   <img src="https://img.shields.io/badge/gradle-000000?style=for-the-badge&logo=gradle&logoColor=white" alt="Gradle"/>
 </div>
+
+<br></br>
+
+# JSON Web Token
+
+- Filter와 Interceptor의 차이점
+    - Filter
+        - Servlet Container 내에서 실행된다.
+        - 모든 요청에 대해 동작하며, Spring Context 외부의 요청과 응답도 처리할 수 있다.
+            - 이는 Spring Security가 Spring MVC밖에서도 작동할 수 있게 하는 핵심적인 이유이다.
+        - Spring Security는 자체 필터 체인을 통해 인증과 인가 과정을 관리한다
+        - 사용자 정의 필터를 자체 필터 체인에 쉽게 추가할 수 있다.
+        - 필터는 요청이 DispatcherServlet에 도달하기 전에 실행된다.
+            - 따라서 인증과 같이 모든 요청에 대해 처리해야 하는 로직에 구현하기에 적합하다.
+    - Interceptor
+        - Spring MVC의 일부로, DispatcherServlet이 컨트롤러를 호출하기 전, 후 그리고 완료 후에 추가 작업을 수행할 수 있도록 한다.
+        - Spring Context내부에서만 작동하며, 주로 컨트롤러의 실행을 가로채는 데 사용된다.
+        - 인증보다는 요청의 사전 처리, 로깅, 트랜잭션 관리 등에 더 적합하다.
+        - 사용자 정의 인터셉터를 구성하기 쉽고, 요청과 응답에 대한 높은 수준의 제어를 제공한다.
+
+| Filter | Interceptor |
+| --- | --- |
+| Filter는 Dispatcher Servlet의 밖에 위치함
+Web Context에 존재하며 Spring Context와 무관함 | Interceptor는 Dispatcher Servlet안에 위치함
+Spring Context에 존재, 모든 Spring Bean에 접근 가능 |
+| **DispatcherServlet**은 
+-SpringMVC의 프론트 컨트롤러이다.
+-HTTP요청을 적절한 컨트롤러에 라우팅
+-뷰 리졸버를 통해 렌더링
+
+→ Filter 이후 DispatcherServletdl 요청을 받고, 그 다음 인터셉터가 컨트롤러 호출 직전 직후 동작 |  |
+| Web context는
+-서블릿 컨테이너의 레벨의 context가 요청을 관리하고있다는 것을 나타냄
+-서블릿과 필터가 여기에 속함
+-DispatcherServlet 바깥에서 요청과 응답을 가로채고 처리합니다 | Spring context는
+-스프링 컨테이너의 애플리케이션 context가 요청을 관리한고있다는 것을 나타냄
+-DispatcherServlet이 Spring Context를 사용하여 관리
+→ 필터는 Web context에 등록되어 Spring MVC 앞에서 동작하고, 인터셉터는 Spring MVC 안에서DispatcherServlet 이후 컨트롤러 앞뒤로 동작합니다 |
+- **VirtualFilterChain**
+    - 실무에서 JWT 인증은 대부분 필터 기반으로 구현
+    - Spring Security는 내부적으로 VirtualFilterChain을 사용해 필터를 실행
+    - Spring Security가 필터 체인을 실행하기 위해 내부적으로 사용하는 구현체
+    - **그럼 Interceptor는 언제 사용할까…?**
+        - 단순 로깅
+        - 특정 비즈니스 로직 전/후 처리
+        - 컨트롤러 진입 전/후 공통 처리
+        - 인증과 무관한 기능
+    - **VirtualFilterChain의 역할**
+        - 여러 개의 Security Filter들을 순서대로 실행시키는 가상의 체인
+        - 실제로는 FilterChainProxy.ViryualFilterChain이라는 내부 클래스
