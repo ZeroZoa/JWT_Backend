@@ -74,7 +74,6 @@
 
 <br></br>
 
-# JSON Web Token
 
 - Filter와 Interceptor의 차이점
     - Filter
