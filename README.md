@@ -99,11 +99,6 @@
 <h2> Filter vs Interceptor </h2>
 
 <table border="1" cellspacing="0" cellpadding="4" style="width:100%; table-layout:fixed;">
-    <colgroup>
-        <col style="width:50%;">
-        <col style="width:50%;">
-    </colgroup>
-
     <tr>
         <th>Filter</th>
         <th>Interceptor</th>
