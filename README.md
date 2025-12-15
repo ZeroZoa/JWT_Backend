@@ -98,51 +98,7 @@
 
 <h2> Filter vs Interceptor </h2>
 
-<table border="1" cellspacing="0" cellpadding="4">
-    <tr>
-        <th>Filter</th>
-        <th>Interceptor</th>
-    </tr>
-
-    <tr>
-        <td>
-            DispatcherServlet Filter는 Dispatcher Servlet의 밖에 위치함<br>
-            Web Context에 존재하며 Spring Context와 무관함
-        </td>
-        <td>
-            DispatcherServlet Interceptor는 Dispatcher Servlet안에 위치함<br>
-            Spring Context에 존재, 모든 Spring Bean에 접근 가능
-        </td>
-    </tr>
-
-    <tr>
-        <td>
-            DispatcherServlet은<br>
-            - SpringMVC의 프론트 컨트롤러이다.<br>
-            - HTTP요청을 적절한 컨트롤러에 라우팅<br>
-            - 뷰 리졸버를 통해 렌더링<br>
-            → Filter 이후 DispatcherServlet이 요청을 받고,<br>
-            그 다음 인터셉터가 컨트롤러 호출 직전/직후 동작
-        </td>
-        <td></td>
-    </tr>
-
-    <tr>
-        <td>
-            Web context는<br>
-            - 서블릿 컨테이너 레벨의 context<br>
-            - 서블릿과 필터가 여기에 속함<br>
-            - DispatcherServlet 바깥에서 요청/응답을 가로채고 처리함
-        </td>
-        <td>
-            Spring context는<br>
-            - 스프링 컨테이너의 애플리케이션 context<br>
-            - DispatcherServlet이 Spring Context를 사용하여 관리<br>
-            → 필터는 Web context에서 Spring MVC 앞에서 동작하고,<br>
-            인터셉터는 Spring MVC 안에서 DispatcherServlet 이후 컨트롤러 앞뒤로 동작함
-        </td>
-    </tr>
-</table>
+<table border="1" cellspacing="0" cellpadding="4"><tr><th>Filter</th><th>Interceptor</th></tr><tr><td>DispatcherServlet Filter는 Dispatcher Servlet의 밖에 위치함<br>Web Context에 존재하며 Spring Context와 무관함</td><td>DispatcherServlet Interceptor는 Dispatcher Servlet안에 위치함<br>Spring Context에 존재, 모든 Spring Bean에 접근 가능</td></tr><tr><td>DispatcherServlet은<br>-SpringMVC의 프론트 컨트롤러이다.<br>-HTTP요청을 적절한 컨트롤러에 라우팅<br>-뷰 리졸버를 통해 렌더링<br>→ Filter 이후 DispatcherServletdl 요청을 받고,<br>그 다음 인터셉터가 컨트롤러 호출 직전 직후 동작</td></tr><tr><td>Web context는<br>-서블릿 컨테이너의 레벨의 context가 요청을 관리하고있다는 것을 나타냄<br>-서블릿과 필터가 여기에 속함<br>-DispatcherServlet 바깥에서 요청과 응답을 가로채고 처리함</td><td>Spring context는<br>-스프링 컨테이너의 애플리케이션 context가 요청을 관리한고있다는 것을 나타냄<br>-DispatcherServlet이 Spring Context를 사용하여 관리<br>→ 필터는 Web context에 등록되어 Spring MVC 앞에서 동작하고, 인터셉터는 Spring MVC 안에서DispatcherServlet 이후 컨트롤러 앞뒤로 동작함</td></tr></table>
 
 <h2>DispatcherServlet</h2>
 <ul>
