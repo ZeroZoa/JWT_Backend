@@ -96,9 +96,9 @@
     <li>Spring Bean 접근이 가능하며 구성도 쉽다.</li>
 </ul>
 
-<h2>Filter vs Interceptor </h2>
+<h2> Filter vs Interceptor </h2>
 
-<table border="1" cellspacing="0" cellpadding="8">
+<table border="1" cellspacing="0" cellpadding="4">
     <tr>
         <th>Filter</th>
         <th>Interceptor</th>
@@ -113,7 +113,8 @@
           -SpringMVC의 프론트 컨트롤러이다.<br>
           -HTTP요청을 적절한 컨트롤러에 라우팅<br>
           -뷰 리졸버를 통해 렌더링<br>
-          → Filter 이후 DispatcherServletdl 요청을 받고,<br>그 다음 인터셉터가 컨트롤러 호출 직전 직후 동작</td>
+          → Filter 이후 DispatcherServletdl 요청을 받고,<br>그 다음 인터셉터가 컨트롤러 호출 직전 직후 동작
+        </td>
     </tr>
     <tr>
         <td>
