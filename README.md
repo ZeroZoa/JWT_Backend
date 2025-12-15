@@ -58,7 +58,7 @@
 <br></br>
 
 <div align="center">
-  <h2 tabindex="-1" class="heading-element" dir="auto"> 사용기술입니다! </h2>
+  <h2 tabindex="-1" class="heading-element" dir="auto"> 사용 기술스택입니다! </h2>
   <img src="https://img.shields.io/badge/Java-000000?style=for-the-badge&logo=&logoColor=white" alt="Java"/>
   <img src="https://img.shields.io/badge/spring-000000?style=for-the-badge&logo=spring&logoColor=white" alt="Spring"/>
   <img src="https://img.shields.io/badge/spring_JPA-000000?style=for-the-badge&logo=&logoColor=white" alt="Spring JPA"/>
